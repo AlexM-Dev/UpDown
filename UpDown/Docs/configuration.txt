@@ -1,0 +1,2 @@
+﻿All available options for UpDown are configurable in
+the file 'config.json', located in the executable's directory.

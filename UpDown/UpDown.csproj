@@ -1,0 +1,38 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <!--<RuntimeIdentifier>linux-x64</RuntimeIdentifier>-->
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <OutputPath></OutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Docs\configuration.txt" />
+    <None Remove="Docs\tos.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Docs\configuration.txt" />
+    <EmbeddedResource Include="Docs\tos.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CloudFlareUtilities" Version="1.3.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UpDown.Core\UpDown.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Program.*.cs">
+      <DependentUpon>Program.cs</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,8 @@
+﻿Seriously, don't misuse this. @cDon't use this as a tool to
+interfere with any other service's operations@r.
+
+The source for this program is probably on GitHub. That means you're
+free to use this and fork this as you please. @cDon't steal the program,
+or credits for the source code@r, and you'll be fine. 
+
+(TL:DR, @cdon't be a dumbass.@r)
