@@ -19,64 +19,88 @@ namespace UpDown {
         internal static HttpClient Client;
         internal static Config ActiveConfig;
 
+        /// <summary>
+        /// Initialise all required components for the program to function.
+        /// </summary>
+        /// <returns>Whether initialisation was successful.</returns>
         private static async Task<bool> initAsync() {
             try {
-                // CONFIGURATION FILE
+                // Initialise the configuration file - failure = false.
                 if (!await initConfigAsync()) {
                     return false;
                 }
 
-                // LOGGER
+                // Initialise the logger, for core and addons.
                 Logger.Initialise(ActiveConfig.EnableLog,
                     ActiveConfig.EnableLogFile,
                     ActiveConfig.LogFilePath);
 
-                // MONITOR TIMER.
+                // Initialise the monitor.
                 Mon.Elapsed += checkWebsitesAsync;
                 Mon.Interval = ActiveConfig.Interval * 1000;
                 Mon.Start();
 
-                // REQUEST CLIENT
+                // Initialise the request client.
                 initClient();
 
-                // REGISTER THE INTERNAL CHECKS.
+                // Register all appropriate checks.
                 Registrar.RegisterInternalChecker(
-					ActiveConfig.CheckSeries);
+                    ActiveConfig.CheckSeries);
             } catch {
+                // If something went wrong, return false.
                 return false;
             }
 
+            // Everything went smoothly.
             return true;
         }
 
+        /// <summary>
+        /// Initialises the config.
+        /// </summary>
+        /// <returns>Successful or not.</returns>
         private static async Task<bool> initConfigAsync() {
+            // Load the config file.
             var config = await FileLoader.LoadAsync(Config, new Config());
 
-            if (config == null) {
-                return false;
-            }
+            // Failed to load.
+            if (config == null) return false;
 
+            // Share the config.
             ActiveConfig = config;
-            await promptTosAsync();
 
+            // Prompt the TOS if not accepted already.
+            if (!await promptTosAsync()) return false;
+
+            // It went smoothly.
             return true;
         }
 
+        /// <summary>
+        /// Initialises the request client.
+        /// </summary>
         private static void initClient() {
+            // Use cloudflare or not.
             if (ActiveConfig.CheckSeries.Cloudflare) {
+                // Create the cloudflare client.
                 var handler = new ClearanceHandler() {
                     MaxRetries = ActiveConfig.CheckSeries.CfMaxRetries
                 };
 
                 Client = new HttpClient(handler);
             } else {
+                // Create the standard client.
                 Client = new HttpClient();
             }
         }
 
-
-        private static async Task promptTosAsync() {
+        /// <summary>
+        /// Prompts the TOS (to accept/not).
+        /// </summary>
+        /// <returns>Whether it was accepted.</returns>
+        private static async Task<bool> promptTosAsync() {
             if (!ActiveConfig.AcceptedTOS) {
+                // Get appropriate documentation.
                 var docs = await Resources.GetDocumentationAsync();
 
                 // Print TOS.
@@ -92,12 +116,17 @@ namespace UpDown {
                     ConsoleKey.N);
 
                 if (k == ConsoleKey.Y) {
+                    // Successful.
                     ActiveConfig.AcceptedTOS = true;
                     await ActiveConfig.SaveAsync(Config);
                 } else {
-                    return;
+                    // The user hates us.
+                    return false;
                 }
             }
+
+            // Everything went smoothly.
+            return true;
         }
     }
 }

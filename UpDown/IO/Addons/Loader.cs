@@ -12,12 +12,21 @@ using UpDown.Core.Events;
 
 namespace UpDown.IO.Addons {
     internal class Loader {
+        /// <summary>
+        /// Executes each addon's shutdown method.
+        /// </summary>
+        /// <param name="addons">The addons to send the message to.</param>
         public static void ShutdownAddons(List<IAddon> addons) {
             foreach (var addon in addons) {
                 addon.Shutdown();
             }
         }
 
+        /// <summary>
+        /// Load each addon and return a list of them.
+        /// </summary>
+        /// <param name="conf">The configuration file to use.</param>
+        /// <returns>List of all loaded addons.</returns>
         public static async Task<List<IAddon>> LoadAddons(Config conf) {
             // Get all files from the directory.
             var files = getFiles(conf);
@@ -66,6 +75,11 @@ namespace UpDown.IO.Addons {
             return initAddons;
         }
 
+        /// <summary>
+        /// Return all valid addon assemblies within the addon folder.
+        /// </summary>
+        /// <param name="conf">The configuration file to read from.</param>
+        /// <returns>List of all addon assemblies.</returns>
         private static string[] getFiles(Config conf) {
             // Find the absolute path of the path given in config.
             var loc = Path.GetFullPath(conf.AddonPath);
@@ -80,6 +94,11 @@ namespace UpDown.IO.Addons {
                 SearchOption.AllDirectories);
         }
 
+        /// <summary>
+        /// Get a set of addons from each assembly file.
+        /// </summary>
+        /// <param name="assemblies">Assemblies to load addons from.</param>
+        /// <returns>List of addons.</returns>
         private static IEnumerable<IAddon> getAddons(string[] assemblies) {
             // Return all assemblies specified, and create addons from each.
             return assemblies.SelectMany(path => {
@@ -88,6 +107,11 @@ namespace UpDown.IO.Addons {
             });
         }
 
+        /// <summary>
+        /// Loads an assembly.
+        /// </summary>
+        /// <param name="path">The assembly path to load from.</param>
+        /// <returns>The loaded assembly.</returns>
         private static Assembly loadAddon(string path) {
             // Load from here.
             string fullPath = Path.GetFullPath(path);
@@ -99,6 +123,11 @@ namespace UpDown.IO.Addons {
                 AssemblyName(Path.GetFileNameWithoutExtension(path)));
         }
 
+        /// <summary>
+        /// Create instances of each addon from an assembly.
+        /// </summary>
+        /// <param name="assembly">The assembly to create addons from.</param>
+        /// <returns>List of addons.</returns>
         private static IEnumerable<IAddon> createAddons(Assembly assembly) {
             // List all types in the assembly.
             foreach (var type in assembly.GetTypes()) {

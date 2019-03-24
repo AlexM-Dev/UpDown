@@ -4,6 +4,11 @@ using System.Text;
 
 namespace UpDown.IO {
     internal class Text {
+        /// <summary>
+        /// Fancify some message in the form of a header.
+        /// </summary>
+        /// <param name="message">Header message.</param>
+        /// <returns>Fancified message.</returns>
         public static string GetHeader(string message) {
             int len = (int)(message.Length * 1.5);
             int m = (len - message.Length) / 2;
@@ -14,6 +19,12 @@ namespace UpDown.IO {
             return $"{header}\n{space}{message}\n{header}";
         }
 
+        /// <summary>
+        /// Trim a string to a length and append '...'
+        /// </summary>
+        /// <param name="message">The message to trim.</param>
+        /// <param name="len">The length to trim to.</param>
+        /// <returns>Trimmed string.</returns>
         public static string Trim(string message, int len) {
             if (message.Length <= len)
                 return message;
