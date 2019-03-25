@@ -6,11 +6,14 @@ using UpDown.Core.Events;
 using UpDown.Core.IO;
 using System.Linq;
 using System.IO;
+using UpDown.Core.Messaging;
 
 namespace UpDown.Refinery {
     public class RefineryCore : IAddon {
         // Currently stored data to provide differentials.
         private Dictionary<string, bool> data;
+
+        private Logger lg;
 
         // List of subscribed addons to receive events from Refinery.
         private List<IAddon> subscribed { get; set; } = new List<IAddon>();
@@ -24,7 +27,9 @@ namespace UpDown.Refinery {
 
         public string Name => "Refinery";
 
-        public async void Initialise() {
+        public async void Initialise(Checker checker, Logger logger) {
+            this.lg = logger;
+
             // Load the config from the refinery.json file.
             config = await FileLoader.LoadAsync("refinery.json",
                 new Config());
@@ -33,7 +38,7 @@ namespace UpDown.Refinery {
 
             // Check whether to register events.
             if (config.Enabled) {
-                CheckerEvents.AllChecksCompleted += allChecksCompleted;
+                checker.AllChecksCompleted += allChecksCompleted;
             }
         }
 
@@ -49,7 +54,7 @@ namespace UpDown.Refinery {
 
             // Log each entry to the console.
             foreach (var status in output)
-                await this.Log(status, force);
+                await lg.Log(status, force);
 
             // If Refinery should log to the file, and there is data to log,
             // then log it.
@@ -117,7 +122,7 @@ namespace UpDown.Refinery {
                     var addonStatus = (bool)response;
 
                     if (addonStatus) {
-                        await this.Log($"Status event successful, " +
+                        await lg.Log($"Status event successful, " +
                             $" sent to {addon.Name}", force);
                     }
                 }
@@ -131,7 +136,7 @@ namespace UpDown.Refinery {
                     case "subscribe wud":
                         // Subscribe the source addon to the Refinery.
                         subscribed.Add(source);
-                        await this.Log($"{source.Name} subscribed" +
+                        await lg.Log($"{source.Name} subscribed" +
                             " to the Refinery.");
 
                         // Return successful event.

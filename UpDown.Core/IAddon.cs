@@ -12,7 +12,7 @@ namespace UpDown.Core {
         /// <summary>
         /// Initialise/make the addon ready.
         /// </summary>
-        void Initialise(Checker checker, Messenger messenger, Logger logger);
+        void Initialise(Checker checker, Logger logger);
 
         /// <summary>
         /// Send a shutdown signal, make the addon unload.

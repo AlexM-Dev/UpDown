@@ -21,9 +21,8 @@ namespace UpDown {
         internal static HttpClient Client;
         internal static Config ActiveConfig;
 
-        public static Checker Checker;
-        public static Messenger Messenger;
-        public static Logger Logger;
+        internal static Checker Checker;
+        internal static Logger Logger;
 
         internal static Loader Loader;
         internal static Registrar Registrar;
@@ -57,6 +56,8 @@ namespace UpDown {
                 Registrar = new Registrar();
                 Registrar.RegisterInternalChecker(Checker,
                     ActiveConfig.CheckSeries);
+
+                Checker.CheckCompleted += checkedWebsite;
             } catch {
                 // If something went wrong, return false.
                 return false;

@@ -14,14 +14,12 @@ using UpDown.Core.Messaging;
 namespace UpDown.IO.Addons {
     internal class Loader {
         private Checker checker;
-        private Messenger messenger;
         private Logger logger;
 
         public List<IAddon> LoadedAddons { get; set; } = new List<IAddon>();
 
-        public Loader(Checker checker, Messenger messenger, Logger logger) {
+        public Loader(Checker checker, Logger logger) {
             this.checker = checker;
-            this.messenger = messenger;
             this.logger = logger;
         }
 
@@ -40,7 +38,7 @@ namespace UpDown.IO.Addons {
         /// </summary>
         /// <param name="conf">The configuration file to use.</param>
         /// <returns>List of all loaded addons.</returns>
-        public async Task LoadAddons(Config conf) {
+        public async Task<List<IAddon>> LoadAddons(Config conf) {
             // Get all files from the directory.
             var files = getFiles(conf);
 
@@ -60,32 +58,47 @@ namespace UpDown.IO.Addons {
                 await logger.Log($"Failed to resolve addons: {ex.Message}",
                     true);
             }
-            // Space it out.
-            await logger.Log("", true);
-
-            // Initialise each addon.
-            var initAddons = new List<IAddon>();
-            foreach (var a in addons) {
-                await logger.Log($"Initialising {a.Name}.", true);
-                try {
-                    a.Initialise(checker, messenger, logger);
-                    await logger.Log("Initialised.", true);
-                    initAddons.Add(a);
-                } catch (Exception ex) {
-                    await logger.Log($"Failed to initialise: {ex.Message}",
-                        true);
-                }
-                await logger.Log("");
-            }
 
             // Return & dump.
             sw.Stop();
 
             await logger.Log("", true);
-            await logger.Log($"Loaded {addons.Count()} addons " +
+            await logger.Log($"Found {addons.Count()} addons " +
                 $"in {sw.ElapsedMilliseconds} ms.", true);
 
-            this.LoadedAddons = initAddons;
+            return this.LoadedAddons = addons.ToList();
+        }
+
+        public async Task<List<IAddon>> InitialiseAddons() {
+            var initAddons = new List<IAddon>();
+
+            await logger.Log($"Initialising {LoadedAddons.Count}.");
+            await logger.Log("");
+
+            var sw = Stopwatch.StartNew();
+
+            foreach (var addon in LoadedAddons) {
+                try {
+                    await logger.Log($"Initialising {addon.Name}");
+                    addon.Initialise(checker, logger);
+                    initAddons.Add(addon);
+                    await logger.Log($"Initialised {addon.Name}");
+                } catch (Exception ex) {
+                    await logger.Log($"Could not initialise" +
+                        $" {addon.Name}: {ex.Message}.");
+                }
+
+                await logger.Log("");
+            }
+
+            await logger.Log($"Initialised {initAddons.Count} addons.");
+            await logger.Log($"Initialisation took " +
+                $"{sw.ElapsedMilliseconds}ms");
+            await logger.Log("");
+
+            sw.Stop();
+
+            return this.LoadedAddons = initAddons;
         }
 
         /// <summary>

@@ -10,13 +10,19 @@ using UpDown.Core.Messaging;
 
 namespace UpDown.DemoVisualAddon {
     class DemoVisualEntryPoint : IAddon {
+        private Checker checker;
+        private Logger lg;
+
         private frmMain mainForm;
         private bool useRefinery;
 
         public string Name => "Demo Visual";
 
-        public void Initialise() {
-            CheckerEvents.MessengerInitialised += addonsReady;
+        public void Initialise(Checker checker, Logger logger) {
+            this.checker = checker;
+            this.lg = logger;
+
+            checker.MessengerInitialised += addonsReady;
 
             // Provide a suitable entry point.
             Application.EnableVisualStyles();
@@ -39,12 +45,12 @@ namespace UpDown.DemoVisualAddon {
         private async void addonsReady(object sender, EventArgs e) {
             useRefinery = await tryUseRefinery();
 
-            await this.Log("Found Refinery addon? " + useRefinery);
+            await lg.Log("Found Refinery addon? " + useRefinery);
 
             if (!useRefinery) {
-                CheckerEvents.CheckingWebsite += checking;
-                CheckerEvents.CheckCompleted += checkFinished;
-                CheckerEvents.AllChecksCompleted += allChecksFinished;
+                checker.CheckingWebsite += checking;
+                checker.CheckCompleted += checkFinished;
+                checker.AllChecksCompleted += allChecksFinished;
             }
         }
 

@@ -28,10 +28,12 @@ namespace UpDown {
 
             // Load all addons, and notify the messenger system
             // that all addons have been loaded.
+            Loader = new Loader(Checker, Logger);
             await Loader.LoadAddons(ActiveConfig);
-            Messenger = new Messenger(Checker, Loader.LoadedAddons);
-            Loader = new Loader(Checker, Messenger, Logger);
-            
+            await Loader.InitialiseAddons();
+
+            Messenger.Initialise(Checker, Loader.LoadedAddons);
+
             // The program should only be active while no input has been
             // given.
             while (!Console.KeyAvailable) ;
