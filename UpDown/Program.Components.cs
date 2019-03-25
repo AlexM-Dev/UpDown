@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 using System.Timers;
 using UpDown.Core;
 using UpDown.Core.IO;
+using UpDown.Core.Messaging;
 using UpDown.CoreChecker;
 using UpDown.IO;
+using UpDown.IO.Addons;
 
 namespace UpDown {
     partial class Program {
@@ -18,6 +20,13 @@ namespace UpDown {
         internal static Timer Mon = new Timer();
         internal static HttpClient Client;
         internal static Config ActiveConfig;
+
+        public static Checker Checker;
+        public static Messenger Messenger;
+        public static Logger Logger;
+
+        internal static Loader Loader;
+        internal static Registrar Registrar;
 
         /// <summary>
         /// Initialise all required components for the program to function.
@@ -31,8 +40,9 @@ namespace UpDown {
                 }
 
                 // Initialise the logger, for core and addons.
-                Logger.Initialise(ActiveConfig.EnableLog,
-                    ActiveConfig.EnableLogFile,
+                Checker = new Checker();
+                Logger = new Logger(ActiveConfig.EnableLog, 
+                    ActiveConfig.EnableLogFile, 
                     ActiveConfig.LogFilePath);
 
                 // Initialise the monitor.
@@ -44,7 +54,8 @@ namespace UpDown {
                 initClient();
 
                 // Register all appropriate checks.
-                Registrar.RegisterInternalChecker(
+                Registrar = new Registrar();
+                Registrar.RegisterInternalChecker(Checker,
                     ActiveConfig.CheckSeries);
             } catch {
                 // If something went wrong, return false.

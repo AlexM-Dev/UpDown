@@ -9,15 +9,28 @@ using UpDown.Core;
 using System.Threading.Tasks;
 using UpDown.CoreChecker;
 using UpDown.Core.Events;
+using UpDown.Core.Messaging;
 
 namespace UpDown.IO.Addons {
     internal class Loader {
+        private Checker checker;
+        private Messenger messenger;
+        private Logger logger;
+
+        public List<IAddon> LoadedAddons { get; set; } = new List<IAddon>();
+
+        public Loader(Checker checker, Messenger messenger, Logger logger) {
+            this.checker = checker;
+            this.messenger = messenger;
+            this.logger = logger;
+        }
+
         /// <summary>
         /// Executes each addon's shutdown method.
         /// </summary>
         /// <param name="addons">The addons to send the message to.</param>
-        public static void ShutdownAddons(List<IAddon> addons) {
-            foreach (var addon in addons) {
+        public void ShutdownAddons() {
+            foreach (var addon in LoadedAddons) {
                 addon.Shutdown();
             }
         }
@@ -27,7 +40,7 @@ namespace UpDown.IO.Addons {
         /// </summary>
         /// <param name="conf">The configuration file to use.</param>
         /// <returns>List of all loaded addons.</returns>
-        public static async Task<List<IAddon>> LoadAddons(Config conf) {
+        public async Task LoadAddons(Config conf) {
             // Get all files from the directory.
             var files = getFiles(conf);
 
@@ -39,40 +52,40 @@ namespace UpDown.IO.Addons {
 
             // Try to retrieve the addons.
             try {
-                await Logger.Log("Resolving addons.", true);
+                await logger.Log("Resolving addons.", true);
 
                 addons = getAddons(files);
             } catch (Exception ex) {
                 // Something horrible happened.
-                await Logger.Log($"Failed to resolve addons: {ex.Message}",
+                await logger.Log($"Failed to resolve addons: {ex.Message}",
                     true);
             }
             // Space it out.
-            await Logger.Log("", true);
+            await logger.Log("", true);
 
             // Initialise each addon.
             var initAddons = new List<IAddon>();
             foreach (var a in addons) {
-                await Logger.Log($"Initialising {a.Name}.", true);
+                await logger.Log($"Initialising {a.Name}.", true);
                 try {
-                    a.Initialise();
-                    await Logger.Log("Initialised.", true);
+                    a.Initialise(checker, messenger, logger);
+                    await logger.Log("Initialised.", true);
                     initAddons.Add(a);
                 } catch (Exception ex) {
-                    await Logger.Log($"Failed to initialise: {ex.Message}",
+                    await logger.Log($"Failed to initialise: {ex.Message}",
                         true);
                 }
-                await Logger.Log("");
+                await logger.Log("");
             }
 
             // Return & dump.
             sw.Stop();
 
-            await Logger.Log("", true);
-            await Logger.Log($"Loaded {addons.Count()} addons " +
+            await logger.Log("", true);
+            await logger.Log($"Loaded {addons.Count()} addons " +
                 $"in {sw.ElapsedMilliseconds} ms.", true);
 
-            return initAddons;
+            this.LoadedAddons = initAddons;
         }
 
         /// <summary>
@@ -80,7 +93,7 @@ namespace UpDown.IO.Addons {
         /// </summary>
         /// <param name="conf">The configuration file to read from.</param>
         /// <returns>List of all addon assemblies.</returns>
-        private static string[] getFiles(Config conf) {
+        private string[] getFiles(Config conf) {
             // Find the absolute path of the path given in config.
             var loc = Path.GetFullPath(conf.AddonPath);
 

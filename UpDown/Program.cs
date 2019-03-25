@@ -28,52 +28,33 @@ namespace UpDown {
 
             // Load all addons, and notify the messenger system
             // that all addons have been loaded.
-            var addons = await Loader.LoadAddons(ActiveConfig);
-            Messenger.Initialise(addons);
-
+            await Loader.LoadAddons(ActiveConfig);
+            Messenger = new Messenger(Checker, Loader.LoadedAddons);
+            Loader = new Loader(Checker, Messenger, Logger);
+            
             // The program should only be active while no input has been
             // given.
             while (!Console.KeyAvailable) ;
 
             // Send a shutdown request to all addons.
-            Loader.ShutdownAddons(addons);
+            Loader.ShutdownAddons();
         }
 
         /// <summary>
         /// The monitor which checks whether a website is up or down.
         /// </summary
         static async void checkWebsitesAsync(object sender, ElapsedEventArgs e) {
-            // Store each status.
-            var statuses = new Dictionary<string, bool>();
+            await Checker.IsDownAsync(ActiveConfig.Websites, Client);
+        }
+        
+        static async void checkedWebsite(object sender, OnFinishCheckEventArgs e) {
+            // Use the logger to log the output.
+            await Logger.Log($"{e.Website} down: {e.IsDown}");
 
-            // Loop through each website to check.
-            foreach (var w in ActiveConfig.Websites) {
-                // Necessary when looping in an asynchronous context (?).
-                string website = w;
-
-                // Use the Core to check if a website is down. Uses addons.
-                var isDown = await Checker.IsDownAsync(website, Client);
-
-                // Add the website to the status.
-                statuses.Add(website, isDown.Item1);
-
-                // Use the logger to log the output.
-                await Logger.Log($"{website} down: {isDown.Item1}");
-
-                if (isDown.Item1)
-                    await Logger.Log($"{website} failed checks: " +
-                        String.Join(", ",
-                        isDown.Item2.ConvertAll(s => Text.Trim(s, 65))));
-
-                // Call CheckCompleted addon events.
-                CheckerEvents.CheckCompleted(null,
-                    new OnFinishCheckEventArgs(website,
-                    isDown.Item1, isDown.Item2));
-            }
-
-            // Call AllChecksCompleted addon events.
-            CheckerEvents.AllChecksCompleted(null,
-                new OnAllChecksEventArgs(statuses));
+            if (e.IsDown)
+                await Logger.Log($"{e.Website} failed checks: " +
+                    String.Join(", ",
+                    e.Sources.ConvertAll(s => Text.Trim(s, 65))));
         }
     }
 }

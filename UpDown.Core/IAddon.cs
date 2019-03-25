@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using UpDown.Core.Messaging;
 
 namespace UpDown.Core {
     public interface IAddon {
@@ -11,7 +12,7 @@ namespace UpDown.Core {
         /// <summary>
         /// Initialise/make the addon ready.
         /// </summary>
-        void Initialise();
+        void Initialise(Checker checker, Messenger messenger, Logger logger);
 
         /// <summary>
         /// Send a shutdown signal, make the addon unload.

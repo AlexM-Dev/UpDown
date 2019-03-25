@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using UpDown.Core;
 using UpDown.Core.Events;
 
 namespace UpDown.CoreChecker {
@@ -12,34 +13,34 @@ namespace UpDown.CoreChecker {
         /// <summary>
         /// The set of checks to use when checking websites.
         /// </summary>
-        public static Checks Checks { get; set; }
+        public Checks Checks { get; set; }
 
         /// <summary>
         /// Registers a base set of supported checks. Provides
         /// the simple core of the program.
         /// </summary>
         /// <param name="checks">The checks to use.</param>
-        public static void RegisterInternalChecker(Checks checks) {
+        public void RegisterInternalChecker(Checker checker, Checks checks) {
             Checks = checks;
 
             // If the response code should be used to determine status:
             if (checks.ResponseCode) {
-                CheckerEvents.CheckingWebsite += checkResponseCode;
+                checker.CheckingWebsite += checkResponseCode;
             }
 
             // If a set of keywords should be used to determine status:
             if (checks.Keyword) {
-                CheckerEvents.CheckingWebsite += checkKeywords;
+                checker.CheckingWebsite += checkKeywords;
             }
 
             // If an error occurs, that should be used to determine status,
             // regardless of type:
             if (checks.TryCatch) {
-                CheckerEvents.CheckingWebsite += checkError;
+                checker.CheckingWebsite += checkError;
             }
         }
 
-        private static void checkResponseCode(object sender, OnCheckingEventArgs e) {
+        private void checkResponseCode(object sender, OnCheckingEventArgs e) {
             // If not errored. 
             if (!e.Error) {
                 // Get status code.
@@ -55,7 +56,7 @@ namespace UpDown.CoreChecker {
             }
         }
 
-        private static void checkKeywords(object sender, OnCheckingEventArgs e) {
+        private void checkKeywords(object sender, OnCheckingEventArgs e) {
             // Not errored.
             if (!e.Error) {
                 // Check each keyword.
@@ -76,7 +77,7 @@ namespace UpDown.CoreChecker {
             }
         }
 
-        private static void checkError(object sender, OnCheckingEventArgs e) {
+        private void checkError(object sender, OnCheckingEventArgs e) {
             // Yes, there's an error!
             if (e.Error) {
                 e.IsDown = true;

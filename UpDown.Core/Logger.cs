@@ -5,10 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace UpDown.Core {
-    public static class Logger {
-        private static bool enableOutput;
-        private static bool enableFile;
-        private static string filePath;
+    public class Logger {
+        private bool enableOutput;
+        private bool enableFile;
+        private string filePath;
 
         /// <summary>
         /// Initialise the logger for performing logging operations.
@@ -16,12 +16,10 @@ namespace UpDown.Core {
         /// <param name="enableOutput">Whether to enable verbose output.</param>
         /// <param name="enableFile">Whether to enable file output.</param>
         /// <param name="filePath">The path to the output file.</param>
-        public static void Initialise(bool enableOutput,
-            bool enableFile, string filePath) {
-
-            Logger.enableOutput = enableOutput;
-            Logger.enableFile = enableFile;
-            Logger.filePath = filePath;
+        public Logger(bool enableOutput, bool enableFile, string filePath) {
+            this.enableOutput = enableOutput;
+            this.enableFile = enableFile;
+            this.filePath = filePath;
         }
 
         /// <summary>
@@ -29,7 +27,7 @@ namespace UpDown.Core {
         /// </summary>
         /// <param name="message">The message to log.</param>
         /// <param name="force">Whether to force logging.</param>
-        public static async Task Log(string message, bool force = false) {
+        public async Task Log(string message, bool force = false) {
             await Log(null, message, force);
         }
 
@@ -40,7 +38,7 @@ namespace UpDown.Core {
         /// <param name="message">The message to log.</param>
         /// <param name="force">Whether to force logging.</param>
         /// <returns></returns>
-        public static async Task Log(this IAddon source, 
+        public async Task Log(IAddon source, 
             string message, bool force = false) {
             if (enableOutput || force) {
                 // Get the appropriate UTC date.
