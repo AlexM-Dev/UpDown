@@ -100,16 +100,13 @@ namespace UpDown {
         /// <returns>Whether it was accepted.</returns>
         private static async Task<bool> promptTosAsync() {
             if (!ActiveConfig.AcceptedTOS) {
-                // Get appropriate documentation.
-                var docs = await Resources.GetDocumentationAsync();
-
                 // Print TOS.
                 Console.WriteLine(Text.GetHeader("TERMS OF USE"));
-                Console.WriteLine(docs[0]);
+                Console.WriteLine(Resources.TOS);
 
                 // Print configuration information.
                 Console.WriteLine(Text.GetHeader("CONFIGURATION"));
-                Console.WriteLine(docs[1]);
+                Console.WriteLine(Resources.Configuration);
 
                 var k = UserInput.Choice("Do you understand the terms & information",
                     ConsoleKey.Y,

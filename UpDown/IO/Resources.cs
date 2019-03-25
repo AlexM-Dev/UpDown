@@ -8,22 +8,19 @@ using System.Linq;
 
 namespace UpDown.IO {
     internal class Resources {
-        /// <summary>
-        /// Provides documentation from the documentation resources. 
-        /// </summary>
-        /// <param name="docs">Documentation file names to load</param>
-        /// <returns>Documentation.</returns>
-        public static async Task<IEnumerable<string>> GetDocumentationAsync(
-            params string[] docs) {
-            // Current assembly & assembly path.
-            var cur = Assembly.GetExecutingAssembly();
-            var bname = cur.GetName().Name + ".Docs.";
+        static Resources() {
+            var assembly = Assembly.GetExecutingAssembly();
+            var name = assembly.GetName().Name;
 
-            // Load each assembly resource.
-            return await Task.WhenAll(from doc in docs
-                                      select 
-                                      getResourceAsync(cur, bname + doc + ".txt"));
+            string tosPath = $"{name}.Docs.tos.txt";
+            string configurationPath = $"{name}.Docs.configuration.txt";
+
+            TOS = getResource(assembly, tosPath);
+            Configuration = getResource(assembly, configurationPath);
         }
+
+        public static string TOS { get; private set; }
+        public static string Configuration { get; private set; }
 
         /// <summary>
         /// Load an embedded resource.
@@ -31,21 +28,10 @@ namespace UpDown.IO {
         /// <param name="a">The assembly to load from.</param>
         /// <param name="name">The name of the resource to load.</param>
         /// <returns>The resource.</returns>
-        private static async Task<string> getResourceAsync(Assembly a, string name) {
+        private static string getResource(Assembly a, string name) {
             using (var stream = a.GetManifestResourceStream(name))
             using (var reader = new StreamReader(stream))
-                return await reader.ReadToEndAsync();
-        }
-        
-        /// <summary>
-        /// Gets TOS and Configuration resources.
-        /// </summary>
-        /// <returns>TOS & Configuration resources.</returns>
-        public static async Task<string[]> GetDocumentationAsync() {
-            var documentation = (await GetDocumentationAsync(
-               "tos", "configuration")).ToArray();
-
-            return documentation;
+                return reader.ReadToEnd();
         }
     }
 }
